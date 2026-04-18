@@ -75,7 +75,7 @@ function handleFirestoreError(err, operationType, path = null) {
 
 async function startApp() {
     try {
-        const response = await fetch('/firebase-applet-config.json');
+        const response = await fetch('./firebase-applet-config.json');
         const firebaseConfig = await response.json();
         
         const app = initializeApp(firebaseConfig);
@@ -102,25 +102,30 @@ function initShopStatus() {
         if (display) {
             display.classList.remove('hidden');
             display.className = `shop-status-banner ${isShopOpen ? 'shop-open' : 'shop-closed'}`;
-            display.textContent = isShopOpen ? 'System Online: Accepting Appointments' : 'System Offline: Shop Closed';
+            display.textContent = isShopOpen ? 'Sistem Aktif: Silahkan Booking' : 'Mohon Maaf: Saat Ini Sedang Mode Istirahat';
         }
 
         if (adminText) {
-            adminText.textContent = isShopOpen ? 'OPEN' : 'CLOSED';
-            adminText.className = isShopOpen ? 'text-green-500' : 'text-red-500';
+            adminText.textContent = isShopOpen ? 'NON-AKTIF' : 'AKTIF';
+            adminText.className = isShopOpen ? 'text-zinc-500' : 'text-gold-500';
         }
 
         if (adminBtn) {
-            adminBtn.textContent = isShopOpen ? 'CLOSE SHOP' : 'OPEN SHOP';
-            adminBtn.className = `px-8 py-3 text-[10px] font-black uppercase tracking-widest rounded transition-all ${isShopOpen ? 'bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white' : 'bg-green-500/10 border border-green-500/20 text-green-500 hover:bg-green-500 hover:text-white'}`;
+            adminBtn.textContent = isShopOpen ? 'AKTIFKAN MODE ISTIRAHAT' : 'BATALKAN MODE ISTIRAHAT';
+            adminBtn.className = `px-8 py-3 text-[10px] font-black uppercase tracking-widest rounded transition-all ${isShopOpen ? 'bg-amber-600/10 border border-amber-600/20 text-amber-500 hover:bg-amber-600 hover:text-white' : 'bg-green-500/10 border border-green-500/20 text-green-500 hover:bg-green-500 hover:text-white'}`;
         }
 
         // Disable booking button if shop closed
         const bookingBtn = document.getElementById('submit-booking');
         if (bookingBtn) {
             bookingBtn.disabled = !isShopOpen;
-            if (!isShopOpen) bookingBtn.textContent = 'SYSTEM CLOSED';
-            else bookingBtn.textContent = 'Establish Appointment';
+            if (!isShopOpen) {
+                bookingBtn.textContent = 'MODE ISTIRAHAT';
+                bookingBtn.style.opacity = "0.5";
+            } else {
+                bookingBtn.textContent = 'Establish Appointment';
+                bookingBtn.style.opacity = "1";
+            }
         }
     }, (err) => {
         handleFirestoreError(err, 'get', 'system/status');
@@ -478,18 +483,18 @@ function handleExport() {
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
     
-    let filtered = adminBookings;
+    let filtered = adminBookings.filter(b => b.status === 'completed');
     
     if (range === 'today') {
-        filtered = adminBookings.filter(b => b.date === todayStr);
+        filtered = filtered.filter(b => b.date === todayStr);
     } else if (range === 'week') {
         const lastWeek = new Date();
         lastWeek.setDate(now.getDate() - 7);
-        filtered = adminBookings.filter(b => new Date(b.date) >= lastWeek);
+        filtered = filtered.filter(b => new Date(b.date) >= lastWeek);
     } else if (range === 'month') {
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
-        filtered = adminBookings.filter(b => {
+        filtered = filtered.filter(b => {
             const d = new Date(b.date);
             return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
         });

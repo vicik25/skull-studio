@@ -6,7 +6,7 @@
     <title>Skull Barbershop & Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="./styles.css">
 </head>
 <body class="tracking-tight">
     <header class="sleek-header">
@@ -39,7 +39,7 @@
 
             <div class="flex justify-between items-center mb-6">
                 <h2 class="panel-title mb-0">Select Time</h2>
-                <input type="date" id="booking-date" class="bg-zinc-900 border border-zinc p-2 text-xs text-gold outline-none rounded">
+                <input type="date" id="booking-date" class="bg-zinc-900 border border-zinc p-2 text-[16px] text-gold outline-none rounded min-w-[140px]">
             </div>
             
             <div id="slots-container" class="calendar-grid-sleek mb-12">
@@ -146,10 +146,10 @@
                 <div class="flex flex-col sm:flex-row items-center gap-6">
                     <div class="border-r border-zinc/20 pr-6 mr-6 hidden sm:block">
                         <h3 class="text-xs uppercase font-black tracking-[3px] text-white">System Operations</h3>
-                        <p class="text-[9px] text-dim font-bold uppercase mt-1">Status: <span id="shop-status-text" class="text-gold">Fetching...</span></p>
+                        <p class="text-[9px] text-dim font-bold uppercase mt-1">Mode Istirahat: <span id="shop-status-text" class="text-gold">Fetching...</span></p>
                     </div>
                     <button id="toggle-shop-btn" class="w-full sm:w-auto px-8 py-3 bg-zinc border border-zinc-700 text-[10px] font-black uppercase tracking-widest rounded hover:border-gold transition-all">
-                        Toggle Shop Status
+                        Ubah Mode Operasional
                     </button>
                 </div>
                 
@@ -157,7 +157,7 @@
                     <div class="hidden md:block px-4 border-r border-zinc/20">
                         <p class="text-[8px] uppercase font-black text-dim tracking-widest">Excel Reports</p>
                     </div>
-                    <select id="export-range" class="w-full sm:w-auto bg-zinc-900 border border-zinc-700 text-[9px] text-gold font-bold uppercase p-2 rounded outline-none focus:border-gold cursor-pointer">
+                    <select id="export-range" class="w-full sm:w-auto bg-zinc-900 border border-zinc-700 text-[16px] text-gold font-bold uppercase p-2 rounded outline-none focus:border-gold cursor-pointer">
                         <option value="today">Today's Sessions</option>
                         <option value="week">Past 7 Days</option>
                         <option value="month">Current Month</option>
@@ -192,7 +192,7 @@
         </div>
     </div>
 
-    <script type="module" src="/app.js"></script>
+    <script type="module" src="./app.js"></script>
     <script>
         function scrollToSection(id) {
             document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
