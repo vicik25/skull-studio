@@ -75,7 +75,7 @@ function handleFirestoreError(err, operationType, path = null) {
 
 async function startApp() {
     try {
-        const response = await fetch('./firebase-applet-config.json');
+        const response = await fetch('firebase-applet-config.json');
         const firebaseConfig = await response.json();
         
         const app = initializeApp(firebaseConfig);
