@@ -1,0 +1,50 @@
+{
+  "entities": {
+    "Booking": {
+      "title": "Booking",
+      "description": "A barbershop appointment",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string", "description": "Full name of the customer" },
+        "service": { "type": "string", "description": "Selected barber service" },
+        "phoneNumber": { "type": "string", "description": "WhatsApp contact number" },
+        "date": { "type": "string", "format": "date", "description": "Deployment date (YYYY-MM-DD)" },
+        "time": { "type": "string", "description": "Appointment time slot (HH:mm)" },
+        "status": { "type": "string", "enum": ["pending", "completed", "no-show", "cancelled"], "description": "Current status of the booking" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Time the booking was made" }
+      },
+      "required": ["customerName", "service", "phoneNumber", "date", "time", "status", "createdAt"]
+    },
+    "DailyAnalytics": {
+      "title": "Daily Analytics",
+      "description": "Financial and traffic summary for a specific day",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "revenue": { "type": "number" },
+        "customers": { "type": "number" }
+      },
+      "required": ["date", "revenue", "customers"]
+    }
+  },
+  "firestore": {
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Collection of all barber appointments"
+    },
+    "/analytics/{date}": {
+      "schema": "DailyAnalytics",
+      "description": "Aggregated daily stats"
+    },
+    "/system/status": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "open": { "type": "boolean" }
+        },
+        "required": ["open"]
+      },
+      "description": "Global shop operational status"
+    }
+  }
+}

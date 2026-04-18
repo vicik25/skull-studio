@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Catch-all deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+             request.auth.token.email == 'skullstudio09@gmail.com' && 
+             request.auth.token.email_verified == true;
+    }
+
+    // Bookings collection
+    match /bookings/{bookingId} {
+      // Allow reading bookings for the current day for Busy Slots display
+      allow read: if true;
+      
+      // Allow creating a booking if signed in (anonymous or email)
+      allow create: if isSignedIn() && 
+                      request.resource.data.status == 'pending' &&
+                      request.resource.data.createdBy == request.auth.uid &&
+                      request.resource.data.createdAt == request.time;
+
+      // Allow owner or admin to update
+      allow update: if isAdmin() || (
+        isSignedIn() &&
+        resource.data.createdBy == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+        request.resource.data.status == 'cancelled' &&
+        resource.data.status == 'pending'
+      );
+    }
+
+    // System status
+    match /system/status {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

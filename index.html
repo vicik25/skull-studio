@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skull Barbershop & Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="tracking-tight">
+    <header class="sleek-header">
+        <div class="logo-area">
+            <div class="logo-circle">S</div>
+            <h1 class="brand-name">Skull Barbershop & Studio</h1>
+        </div>
+        <nav class="nav-links">
+            <span class="active" onclick="scrollToSection('main-layout')">Booking</span>
+            <span onclick="scrollToSection('live-view-section')">Live View</span>
+            <span onclick="scrollToSection('services-section')">Services</span>
+            <span onclick="document.getElementById('login-modal').classList.remove('hidden')">Admin</span>
+        </nav>
+    </header>
+
+    <main id="main-layout" class="sleek-layout">
+        <!-- Panel 1: Services -->
+        <section id="services-section" class="sleek-panel border-r border-zinc">
+            <h2 class="panel-title">Our Menu</h2>
+            <div id="services-grid" class="service-grid">
+                <!-- Injected via app.js with .service-item-sleek -->
+            </div>
+        </section>
+
+        <!-- Panel 2: Booking -->
+        <section class="sleek-panel">
+            <div id="shop-status-display" class="shop-status-banner hidden">
+                SYSTEM STANDBY
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="panel-title mb-0">Select Time</h2>
+                <input type="date" id="booking-date" class="bg-zinc-900 border border-zinc p-2 text-xs text-gold outline-none rounded">
+            </div>
+            
+            <div id="slots-container" class="calendar-grid-sleek mb-12">
+                <!-- Slots injected via app.js with .slot-sleek -->
+            </div>
+
+            <div class="border-t border-zinc pt-8">
+                <h2 class="panel-title">Confirm Details</h2>
+                <form id="booking-form" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" id="cust-name" required placeholder="NAME" class="sleek-input">
+                        <input type="tel" id="cust-phone" required placeholder="WHATSAPP" class="sleek-input">
+                    </div>
+                    <select id="selected-service" required class="sleek-input">
+                        <option value="" disabled selected>CHOOSE SERVICE</option>
+                    </select>
+                    <button type="submit" id="submit-booking" class="w-full h-12 bg-[#D4AF37] text-black font-black uppercase text-xs tracking-widest rounded hover:opacity-90 transition-opacity">
+                        Establish Appointment
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Panel 3: Live Feed -->
+        <section id="live-view-section" class="sleek-panel border-l border-zinc">
+            <h2 class="panel-title">Live Occupancy</h2>
+            <div id="occupied-slots-view" class="flex flex-wrap gap-2 mb-12">
+                <!-- Occupied slots indicate -->
+            </div>
+
+            <h2 class="panel-title">Booking Feed</h2>
+            <div id="public-feed" class="flex flex-col gap-3">
+                <!-- Public feed items injected via app.js -->
+            </div>
+        </section>
+    </main>
+
+    <footer class="sleek-footer">
+        <div class="stat-group">
+            <div class="stat-item">Today's Customers <b><span id="foot-cust">0</span></b></div>
+            <div class="stat-item">Est. Revenue <b>Rp <span id="foot-rev">0</span></b></div>
+        </div>
+        <div class="text-[10px] uppercase opacity-40 font-bold tracking-widest text-center flex-grow">
+            10:00 - 22:00 (Fri Starts 13:00)
+        </div>
+        <button id="wa-confirm-global" class="whatsapp-btn-sleek">Confirm via WhatsApp</button>
+    </footer>
+
+    <!-- Admin Button (Hidden) -->
+    <div class="fixed bottom-4 right-4 z-50 opacity-10 hover:opacity-100 transition-opacity text-[8px] gold-text p-1 cursor-pointer" onclick="document.getElementById('login-modal').classList.remove('hidden')">
+        SYSTEM ACCESS
+    </div>
+
+    <!-- Modals -->
+    <div id="ticket-modal" class="fixed inset-0 z-[100] modal-overlay hidden px-6">
+        <div class="ticket-container gold-glow">
+            <div class="text-center border-b border-zinc mb-6 pb-6">
+                <h4 class="text-xl font-bold uppercase tracking-widest">Appointment Ticket</h4>
+                <p class="text-[9px] opacity-50 uppercase tracking-widest mt-1">Confirmed Secure</p>
+            </div>
+            <div class="space-y-3 text-xs uppercase font-medium">
+                <div class="flex justify-between font-mono"><span>Date</span> <span id="t-date" class="text-gold"></span></div>
+                <div class="flex justify-between font-mono"><span>Time</span> <span id="t-time" class="text-gold"></span></div>
+                <div class="flex justify-between"><span>Client</span> <span id="t-name"></span></div>
+                <div class="flex justify-between"><span>Service</span> <span id="t-service"></span></div>
+            </div>
+            <div class="mt-8">
+                <button id="wa-confirm-modal" class="w-full bg-[#D4AF37] text-black font-extrabold py-3 uppercase tracking-wider text-[10px] rounded">Send WhatsApp Confirmation</button>
+                <div class="flex gap-2 mt-4">
+                    <button id="cancel-booking-btn" class="flex-1 border border-red-500/30 text-red-500 font-bold py-2 uppercase tracking-widest text-[9px] rounded hover:bg-red-500 hover:text-white transition-colors">Cancel Booking</button>
+                    <button onclick="closeModal('ticket-modal')" class="flex-1 bg-zinc-100 text-zinc-500 text-[9px] uppercase font-bold text-center py-2 rounded">Dismiss</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Overlay Fullscreen -->
+    <div id="admin-modal" class="fixed inset-0 z-[100] bg-black hidden overflow-y-auto">
+        <div class="p-10 max-w-5xl mx-auto">
+            <div class="flex justify-between items-end mb-12 border-b border-zinc pb-8">
+                <div>
+                    <h2 class="text-3xl font-serif italic text-gold mb-2">Command Center</h2>
+                    <p class="text-[10px] uppercase tracking-[4px] text-dim font-bold">System Status: Minimalist View</p>
+                </div>
+                <button onclick="closeModal('admin-modal')" class="border border-zinc px-6 py-2 text-[10px] uppercase tracking-widest hover:bg-zinc">Exit Portal</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                <div class="bg-[#111] p-6 border-l-2 border-gold rounded-r-md">
+                    <p class="text-[9px] uppercase tracking-widest text-dim mb-1 font-bold">Total Queue</p>
+                    <h4 class="text-2xl font-mono text-gold font-bold"><span id="dash-cust">0</span></h4>
+                </div>
+                <div class="bg-[#111] p-6 border-l-2 border-gold rounded-r-md">
+                    <p class="text-[9px] uppercase tracking-widest text-dim mb-1 font-bold">Today's Revenue</p>
+                    <h4 class="text-2xl font-mono text-gold font-bold">Rp <span id="dash-rev">0</span></h4>
+                </div>
+                <div class="bg-[#111] p-6 border-l-2 border-gold rounded-r-md">
+                    <p class="text-[9px] uppercase tracking-widest text-dim mb-1 font-bold">Top Service</p>
+                    <h4 class="text-lg badass-text text-gold leading-tight mt-1 truncate" id="dash-top-service">-</h4>
+                </div>
+            </div>
+
+            <div class="mb-12 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-6 bg-[#111] p-6 border border-zinc/30 rounded">
+                <div class="flex flex-col sm:flex-row items-center gap-6">
+                    <div class="border-r border-zinc/20 pr-6 mr-6 hidden sm:block">
+                        <h3 class="text-xs uppercase font-black tracking-[3px] text-white">System Operations</h3>
+                        <p class="text-[9px] text-dim font-bold uppercase mt-1">Status: <span id="shop-status-text" class="text-gold">Fetching...</span></p>
+                    </div>
+                    <button id="toggle-shop-btn" class="w-full sm:w-auto px-8 py-3 bg-zinc border border-zinc-700 text-[10px] font-black uppercase tracking-widest rounded hover:border-gold transition-all">
+                        Toggle Shop Status
+                    </button>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row items-center gap-4 bg-black/40 p-2 rounded-lg border border-zinc/10">
+                    <div class="hidden md:block px-4 border-r border-zinc/20">
+                        <p class="text-[8px] uppercase font-black text-dim tracking-widest">Excel Reports</p>
+                    </div>
+                    <select id="export-range" class="w-full sm:w-auto bg-zinc-900 border border-zinc-700 text-[9px] text-gold font-bold uppercase p-2 rounded outline-none focus:border-gold cursor-pointer">
+                        <option value="today">Today's Sessions</option>
+                        <option value="week">Past 7 Days</option>
+                        <option value="month">Current Month</option>
+                        <option value="all">Full History</option>
+                    </select>
+                    <button id="export-excel-btn" class="w-full sm:w-auto px-6 py-2.5 bg-green-600/10 border border-green-600/30 text-green-500 font-black text-[10px] uppercase tracking-widest rounded hover:bg-green-600 hover:text-white transition-all flex items-center justify-center gap-2">
+                        <svg class="w-3.4 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                        Export Recap
+                    </button>
+                </div>
+            </div>
+
+            <h3 class="text-[10px] uppercase font-bold tracking-[3px] text-zinc-500 mb-6 pb-2 border-b border-zinc/20">Live Booking Feed</h3>
+            <div id="admin-feed-container" class="space-y-4">
+                <!-- Admin feed injected via app.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Mask -->
+    <div id="login-modal" class="fixed inset-0 z-[110] bg-black hidden flex items-center justify-center p-6">
+        <div class="w-full max-w-[320px] text-center">
+            <div class="logo-circle mx-auto mb-8">S</div>
+            <h4 class="text-[10px] uppercase tracking-[5px] text-dim mb-10 font-bold">Admin Portal Access</h4>
+            <div class="space-y-4">
+                <input type="email" id="admin-email" placeholder="ADMIN EMAIL" class="sleek-input text-center">
+                <input type="password" id="admin-pass" placeholder="PASSWORD" class="sleek-input text-center">
+            </div>
+            <button id="login-btn" class="w-full h-14 mt-8 border border-gold text-gold font-bold uppercase text-[10px] tracking-widest hover:bg-gold hover:text-black transition-all rounded">Authenticate</button>
+            <p id="login-error" class="text-red-500 text-[10px] mt-6 hidden uppercase font-bold">Identity Rejected</p>
+            <div onclick="closeModal('login-modal')" class="mt-10 text-[9px] text-dim uppercase cursor-pointer hover:text-white font-bold tracking-[2px]">Close System</div>
+        </div>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+    <script>
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

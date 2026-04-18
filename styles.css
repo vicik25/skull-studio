@@ -1,0 +1,515 @@
+/* styles.css - Sleek Interface Theme */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono&display=swap');
+
+:root {
+    --bg: #0a0a0a;
+    --zinc: #27272a;
+    --gold: #D4AF37;
+    --gold-muted: rgba(212, 175, 55, 0.15);
+    --text-main: #e4e4e7;
+    --text-dim: #a1a1aa;
+    --font-serif: 'Playfair Display', serif;
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Layout Pattern - Horizontal on desktop, stacked on mobile */
+main.sleek-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background-color: var(--zinc);
+    flex-grow: 1;
+}
+
+@media (min-width: 1024px) {
+    main.sleek-layout {
+        grid-template-columns: 320px 1fr 300px;
+    }
+}
+
+section.sleek-panel {
+    background-color: var(--bg);
+    padding: 24px;
+}
+
+@media (min-width: 1024px) {
+    section.sleek-panel {
+        overflow-y: auto;
+    }
+}
+
+/* Header Section */
+header.sleek-header {
+    min-height: 80px;
+    border-bottom: 1px solid var(--zinc);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: linear-gradient(to right, #0a0a0a, #111);
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    header.sleek-header {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 0 40px;
+        height: 80px;
+    }
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo-circle {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    font-family: var(--font-serif);
+    font-weight: bold;
+    color: var(--gold);
+    font-size: 18px;
+}
+
+.brand-name {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+}
+
+@media (min-width: 768px) {
+    .brand-name {
+        font-size: 24px;
+    }
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+}
+
+@media (min-width: 768px) {
+    .nav-links {
+        gap: 30px;
+        font-size: 11px;
+        letter-spacing: 1.5px;
+    }
+}
+
+.nav-links span {
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.nav-links span:hover, .nav-links span.active {
+    color: var(--gold);
+}
+
+/* Panel Headings */
+h2.panel-title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 18px;
+    margin-bottom: 24px;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-transform: none;
+}
+
+h2.panel-title::after {
+    content: '';
+    flex-grow: 1;
+    height: 1px;
+    background: var(--zinc);
+}
+
+/* Service List Styling */
+.service-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.service-item-sleek {
+    padding: 16px;
+    border: 1px solid var(--zinc);
+    border-radius: 4px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.service-item-sleek:hover {
+    border-color: var(--gold);
+    background: rgba(212, 175, 55, 0.05);
+}
+
+.service-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.service-name {
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+}
+
+.service-price {
+    color: var(--gold);
+    font-family: var(--font-mono);
+    font-size: 14px;
+}
+
+.service-meta {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Booking Schedule Styling */
+.calendar-grid-sleek {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    align-content: start;
+}
+
+@media (min-width: 640px) {
+    .calendar-grid-sleek {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+    }
+}
+
+.slot-sleek {
+    padding: 12px 8px;
+    background: #111;
+    border: 1px solid var(--zinc);
+    border-radius: 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+@media (min-width: 768px) {
+    .slot-sleek {
+        padding: 16px;
+    }
+}
+
+.slot-sleek.available:hover {
+    background: var(--zinc);
+    border-color: var(--gold);
+}
+
+.slot-sleek.selected {
+    border-color: var(--gold);
+    background: var(--gold-muted);
+    box-shadow: 0 0 15px var(--gold-muted);
+}
+
+.slot-sleek.full {
+    opacity: 0.25;
+    cursor: not-allowed;
+    background: #000;
+    border-style: dashed;
+}
+
+.time {
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #fff;
+}
+
+@media (min-width: 768px) {
+    .time {
+        font-size: 16px;
+    }
+}
+
+.status-label-sleek {
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+}
+
+/* Admin / Ticket Mini Feed */
+.ticket-mini-sleek {
+    padding: 16px;
+    background: #151515;
+    border-left: 2px solid var(--zinc);
+    border-radius: 0 4px 4px 0;
+    position: relative;
+    margin-bottom: 12px;
+    transition: all 0.3s ease;
+}
+
+.ticket-mini-sleek.active-booking {
+    border-left-color: var(--gold);
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.05) 0%, rgba(0,0,0,0) 100%);
+}
+
+.active-glow {
+    border-left-width: 4px;
+    border-left-color: var(--gold) !important;
+    background: var(--gold-muted) !important;
+    box-shadow: 0 0 20px rgba(212, 175, 15, 0.2);
+    animation: active-pulse 2s infinite ease-in-out;
+}
+
+@keyframes active-pulse {
+    0% { box-shadow: 0 0 10px rgba(212, 175, 55, 0.1); }
+    50% { box-shadow: 0 0 30px rgba(212, 175, 55, 0.3); }
+    100% { box-shadow: 0 0 10px rgba(212, 175, 55, 0.1); }
+}
+
+.shop-status-banner {
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+.shop-open {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+.shop-closed {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+/* Premium Typography for Badass Vintage Vibe */
+.badass-text {
+    font-family: var(--font-serif);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 800;
+}
+
+.wa-admin-btn {
+    background: #25D366;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.time-stamp {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    color: var(--gold);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+}
+
+.cust-name {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.service-type {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+/* Select Form Styling */
+.sleek-input {
+    width: 100%;
+    background: #111;
+    border: 1px solid var(--zinc);
+    padding: 12px;
+    color: var(--text-main);
+    font-size: 16px; /* Wajib 16px untuk iOS */
+    outline: none;
+    border-radius: 4px;
+}
+
+.sleek-input:focus {
+    border-color: var(--gold);
+}
+
+/* Footer Section */
+footer.sleek-footer {
+    border-top: 1px solid var(--zinc);
+    background-color: #050505;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 20px;
+    color: var(--text-dim);
+    gap: 20px;
+}
+
+@media (min-width: 1024px) {
+    footer.sleek-footer {
+        height: 80px;
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 0 40px;
+        gap: 0;
+    }
+}
+
+.whatsapp-btn-sleek {
+    background: var(--gold);
+    color: #000;
+    padding: 12px 32px;
+    border-radius: 4px;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s;
+    width: 100%;
+}
+
+@media (min-width: 1024px) {
+    .whatsapp-btn-sleek {
+        padding: 8px 24px;
+        font-size: 10px;
+        width: auto;
+    }
+}
+
+.whatsapp-btn-sleek:hover {
+    transform: translateY(-1px);
+}
+
+.stat-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .stat-group {
+        flex-direction: row;
+        justify-content: center;
+        gap: 32px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .stat-group {
+        width: auto;
+        text-align: left;
+    }
+}
+
+.stat-item {
+    font-size: 12px;
+}
+
+.stat-item b {
+    color: var(--gold);
+    font-family: var(--font-mono);
+}
+
+/* Modals Refined */
+.modal-overlay {
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ticket-container {
+    background: #fff;
+    color: #000;
+    padding: 24px;
+    width: 90%;
+    max-width: 360px;
+    border-radius: 4px;
+    position: relative;
+}
+
+@media (min-width: 768px) {
+    .ticket-container {
+        padding: 32px;
+    }
+}
+
+/* Admin Specific */
+.admin-action-select {
+    background: #000;
+    border: 1px solid var(--zinc);
+    color: var(--gold);
+    font-size: 10px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Responsive Grid helper */
+.resp-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+@media (min-width: 640px) {
+    .resp-grid {
+        grid-cols: 2;
+    }
+}
+
