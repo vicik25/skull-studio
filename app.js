@@ -1,6 +1,8 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
-import { getFirestore, collection, addDoc, onSnapshot, query, where, serverTimestamp, updateDoc, doc, getDocs, orderBy, setDoc } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
+import { getFirestore, collection, addDoc, onSnapshot, query, where, serverTimestamp, updateDoc, doc, getDocs, orderBy, setDoc, getDocFromServer } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+
+// ... (Service Data remains unchanged)
 
 // Service Data
 const SERVICES = [
@@ -82,18 +84,35 @@ async function startApp() {
         db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
         auth = getAuth(app);
 
+        // Pre-flight Connection Check
+        testFirebaseConnection();
+
         init();
         initShopStatus();
     } catch (err) {
-        console.error("Failed to start app:", err);
+        console.error("Failed to bootstrap application core:", err);
+    }
+}
+
+async function testFirebaseConnection() {
+    try {
+        // Attempt to reach Cloud Firestore backend
+        await getDocFromServer(doc(db, 'settings', 'store_status'));
+        console.log("Firebase Backend: SYNCHRONIZED");
+    } catch (error) {
+        if (error.code === 'permission-denied' || error.message?.includes('permission-denied') || error.message?.includes('offline')) {
+            console.error("CRITICAL: Firebase Connection Refused. Verify Domain Authorization.");
+            console.warn("ADMIN ALERT: System isolation detected. Check Google Cloud Console Authorized Domains.");
+        }
     }
 }
 
 let isShopOpen = true;
 function initShopStatus() {
-    onSnapshot(doc(db, 'system', 'status'), (snapshot) => {
+    // Sync with Firestore: settings/store_status (isOpen)
+    onSnapshot(doc(db, 'settings', 'store_status'), (snapshot) => {
         const data = snapshot.data();
-        isShopOpen = data ? data.open : true;
+        isShopOpen = data ? data.isOpen : true;
         
         const display = document.getElementById('shop-status-display');
         const adminText = document.getElementById('shop-status-text');
@@ -102,42 +121,56 @@ function initShopStatus() {
         if (display) {
             display.classList.remove('hidden');
             display.className = `shop-status-banner ${isShopOpen ? 'shop-open' : 'shop-closed'}`;
-            display.textContent = isShopOpen ? 'Sistem Aktif: Silahkan Booking' : 'Mohon Maaf: Saat Ini Sedang Mode Istirahat';
+            display.textContent = isShopOpen ? 'Sistem Aktif: Silahkan Booking' : 'Mohon Maaf, saat ini Skull Barber sedang tutup sementara. Silakan hubungi via WhatsApp untuk info lebih lanjut.';
         }
 
         if (adminText) {
-            adminText.textContent = isShopOpen ? 'NON-AKTIF' : 'AKTIF';
-            adminText.className = isShopOpen ? 'text-zinc-500' : 'text-gold-500';
+            const statusLabel = isShopOpen ? 'BUKA' : 'TUTUP';
+            adminText.textContent = statusLabel;
+            adminText.className = isShopOpen ? 'text-green-500 font-black' : 'text-red-500 font-black';
         }
 
         if (adminBtn) {
-            adminBtn.textContent = isShopOpen ? 'AKTIFKAN MODE ISTIRAHAT' : 'BATALKAN MODE ISTIRAHAT';
-            adminBtn.className = `px-8 py-3 text-[10px] font-black uppercase tracking-widest rounded transition-all ${isShopOpen ? 'bg-amber-600/10 border border-amber-600/20 text-amber-500 hover:bg-amber-600 hover:text-white' : 'bg-green-500/10 border border-green-500/20 text-green-500 hover:bg-green-500 hover:text-white'}`;
+            adminBtn.textContent = isShopOpen ? 'TUTUP TOKO (MODE ISTIRAHAT)' : 'BUKA TOKO SEKARANG';
+            adminBtn.className = `px-8 py-3 text-[10px] font-black uppercase tracking-widest rounded transition-all shadow-lg ${isShopOpen ? 'bg-red-600 border border-red-700 text-white hover:bg-red-700' : 'bg-green-600 border border-green-700 text-white hover:bg-green-700'}`;
         }
 
-        // Disable booking button if shop closed
+        // Disable booking components if shop closed
         const bookingBtn = document.getElementById('submit-booking');
+        const bookingInputs = document.querySelectorAll('#booking-form input, #booking-form select');
+        
         if (bookingBtn) {
             bookingBtn.disabled = !isShopOpen;
             if (!isShopOpen) {
                 bookingBtn.textContent = 'MODE ISTIRAHAT';
-                bookingBtn.style.opacity = "0.5";
+                bookingBtn.classList.add('opacity-30');
             } else {
                 bookingBtn.textContent = 'Establish Appointment';
-                bookingBtn.style.opacity = "1";
+                bookingBtn.classList.remove('opacity-30');
             }
         }
+
+        bookingInputs.forEach(input => {
+            input.disabled = !isShopOpen;
+            input.style.opacity = isShopOpen ? "1" : "0.4";
+        });
     }, (err) => {
-        handleFirestoreError(err, 'get', 'system/status');
+        handleFirestoreError(err, 'get', 'settings/store_status');
     });
 
     const toggleBtn = document.getElementById('toggle-shop-btn');
     if (toggleBtn) {
         toggleBtn.onclick = async () => {
+            const originalText = toggleBtn.textContent;
             try {
-                await setDoc(doc(db, 'system', 'status'), { open: !isShopOpen });
+                toggleBtn.disabled = true;
+                toggleBtn.textContent = 'UPDATING STATE...';
+                await setDoc(doc(db, 'settings', 'store_status'), { isOpen: !isShopOpen });
             } catch (err) {
-                handleFirestoreError(err, 'write', 'system/status');
+                handleFirestoreError(err, 'write', 'settings/store_status');
+            } finally {
+                toggleBtn.disabled = false;
+                toggleBtn.textContent = originalText;
             }
         };
     }
@@ -302,17 +335,33 @@ function updateLiveView() {
 
 async function handleBooking(e) {
     e.preventDefault();
+
+    const nameInput = document.getElementById('cust-name');
+    const phoneInput = document.getElementById('cust-phone');
+    const serviceId = document.getElementById('selected-service').value;
+
+    // Validation Check
+    if (!nameInput.value.trim()) {
+        alert("Nama Pelanggan Wajib Diisi");
+        nameInput.focus();
+        return;
+    }
+    if (!phoneInput.value.trim() || phoneInput.value.length < 8) {
+        alert("Nomor WhatsApp Tidak Valid");
+        phoneInput.focus();
+        return;
+    }
     if (!selectedTime) {
-        alert("Select Time Slot Vector First");
+        alert("Silahkan Pilih Jam Booking Terlebih Dahulu");
+        window.scrollToSection('main-layout');
         return;
     }
 
-    const serviceId = document.getElementById('selected-service').value;
     const service = SERVICES.find(s => s.id === serviceId);
 
     const bookingData = {
-        customerName: document.getElementById('cust-name').value,
-        phoneNumber: document.getElementById('cust-phone').value,
+        customerName: nameInput.value.trim(),
+        phoneNumber: phoneInput.value.trim(),
         service: service.name,
         serviceId: serviceId,
         price: service.price,
@@ -323,33 +372,46 @@ async function handleBooking(e) {
         createdAt: serverTimestamp()
     };
 
+    console.log("Attempting to send data to Firebase...");
+    const btn = document.getElementById('submit-booking');
+
     try {
-        const btn = document.getElementById('submit-booking');
         btn.disabled = true;
         btn.textContent = 'EXECUTING TRANSACTION...';
         
         const docRef = await addDoc(collection(db, 'bookings'), bookingData);
+        console.log("Transmission Success: ID", docRef.id);
         
         showTicket({ id: docRef.id, ...bookingData });
         bookingForm.reset();
         selectedTime = null;
         updateSlots();
     } catch (err) {
-        handleFirestoreError(err, 'create', 'bookings');
-    } finally {
-        const btn = document.getElementById('submit-booking');
-        btn.disabled = false;
+        console.error("Transmission Error:", err);
+        // User-friendly feedback
+        alert("Maaf, ada gangguan teknis. Hubungi admin via WhatsApp.");
         btn.textContent = 'Establish Appointment';
+        btn.disabled = false;
+        
+        // Internal logging
+        try {
+            handleFirestoreError(err, 'create', 'bookings');
+        } catch(e) { /* silent */ }
+    } finally {
+        if (!btn.disabled) {
+            btn.textContent = 'Establish Appointment';
+        }
     }
 }
 
 function showTicket(data) {
+    document.getElementById('t-id').textContent = data.id || 'N/A';
     document.getElementById('t-date').textContent = data.date;
     document.getElementById('t-time').textContent = data.time;
     document.getElementById('t-name').textContent = data.customerName;
     document.getElementById('t-service').textContent = data.service;
 
-    const waMsg = encodeURIComponent(`Booking Confirmation\n\nClient: ${data.customerName}\nSession: ${data.date} @ ${data.time}\nService: ${data.service}`);
+    const waMsg = encodeURIComponent(`Halo Skull Barbershop, saya ingin konfirmasi booking:\n\nID: ${data.id}\nNama: ${data.customerName}\nLayanan: ${data.service}\nWaktu: ${data.date} jam ${data.time}\n\nTerima kasih!`);
     
     // Set both global and modal WA buttons
     const waGlobal = document.getElementById('wa-confirm-global');

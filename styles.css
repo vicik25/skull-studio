@@ -474,13 +474,18 @@ footer.sleek-footer {
 }
 
 .ticket-container {
-    background: #fff;
-    color: #000;
+    background: #0a0a0a;
+    color: var(--text-main);
     padding: 24px;
     width: 90%;
     max-width: 360px;
-    border-radius: 4px;
+    border-radius: 8px;
     position: relative;
+    border: 1px solid var(--gold);
+}
+
+.gold-glow {
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
 }
 
 @media (min-width: 768px) {

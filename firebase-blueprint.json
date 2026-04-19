@@ -36,15 +36,15 @@
       "schema": "DailyAnalytics",
       "description": "Aggregated daily stats"
     },
-    "/system/status": {
+    "/settings/store_status": {
       "schema": {
         "type": "object",
         "properties": {
-          "open": { "type": "boolean" }
+          "isOpen": { "type": "boolean" }
         },
-        "required": ["open"]
+        "required": ["isOpen"]
       },
-      "description": "Global shop operational status"
+      "description": "Global shop operational status (Manual Toggle)"
     }
   }
 }

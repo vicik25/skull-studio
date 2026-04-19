@@ -96,21 +96,25 @@
     <!-- Modals -->
     <div id="ticket-modal" class="fixed inset-0 z-[100] modal-overlay hidden px-6">
         <div class="ticket-container gold-glow">
-            <div class="text-center border-b border-zinc mb-6 pb-6">
-                <h4 class="text-xl font-bold uppercase tracking-widest">Appointment Ticket</h4>
-                <p class="text-[9px] opacity-50 uppercase tracking-widest mt-1">Confirmed Secure</p>
+            <div class="text-center border-b border-zinc/30 mb-6 pb-6">
+                <h4 class="text-xl font-black uppercase tracking-[2px] text-gold">Booking Berhasil!</h4>
+                <p class="text-[9px] opacity-50 uppercase tracking-widest mt-1">Konfirmasi antrean Anda segera</p>
             </div>
-            <div class="space-y-3 text-xs uppercase font-medium">
-                <div class="flex justify-between font-mono"><span>Date</span> <span id="t-date" class="text-gold"></span></div>
-                <div class="flex justify-between font-mono"><span>Time</span> <span id="t-time" class="text-gold"></span></div>
-                <div class="flex justify-between"><span>Client</span> <span id="t-name"></span></div>
-                <div class="flex justify-between"><span>Service</span> <span id="t-service"></span></div>
+            <div class="space-y-4 text-xs uppercase font-medium">
+                <div class="flex justify-between items-center opacity-70">
+                    <span class="text-[9px]">ID BOOKING</span>
+                    <span id="t-id" class="font-mono text-white text-[9px]"></span>
+                </div>
+                <div class="flex justify-between font-mono"><span>HARI / TANGGAL</span> <span id="t-date" class="text-gold"></span></div>
+                <div class="flex justify-between font-mono"><span>JAM BOOKING</span> <span id="t-time" class="text-gold"></span></div>
+                <div class="flex justify-between"><span>PELANGGAN</span> <span id="t-name" class="text-white"></span></div>
+                <div class="flex justify-between"><span>LAYANAN</span> <span id="t-service" class="text-white"></span></div>
             </div>
             <div class="mt-8">
-                <button id="wa-confirm-modal" class="w-full bg-[#D4AF37] text-black font-extrabold py-3 uppercase tracking-wider text-[10px] rounded">Send WhatsApp Confirmation</button>
+                <button id="wa-confirm-modal" class="w-full bg-gold text-black font-black py-4 uppercase tracking-widest text-[11px] rounded transition-transform active:scale-95 shadow-lg shadow-gold/20">Konfirmasi via WhatsApp</button>
                 <div class="flex gap-2 mt-4">
-                    <button id="cancel-booking-btn" class="flex-1 border border-red-500/30 text-red-500 font-bold py-2 uppercase tracking-widest text-[9px] rounded hover:bg-red-500 hover:text-white transition-colors">Cancel Booking</button>
-                    <button onclick="closeModal('ticket-modal')" class="flex-1 bg-zinc-100 text-zinc-500 text-[9px] uppercase font-bold text-center py-2 rounded">Dismiss</button>
+                    <button id="cancel-booking-btn" class="flex-1 border border-red-500/20 text-red-500/60 font-bold py-2 uppercase tracking-widest text-[9px] rounded hover:border-red-500 hover:text-red-500 transition-all">Batalkan</button>
+                    <button onclick="closeModal('ticket-modal')" class="flex-1 bg-zinc-900 text-zinc-400 text-[9px] uppercase font-bold text-center py-2 rounded hover:text-white transition-colors">Tutup</button>
                 </div>
             </div>
         </div>
@@ -145,10 +149,10 @@
             <div class="mb-12 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-6 bg-[#111] p-6 border border-zinc/30 rounded">
                 <div class="flex flex-col sm:flex-row items-center gap-6">
                     <div class="border-r border-zinc/20 pr-6 mr-6 hidden sm:block">
-                        <h3 class="text-xs uppercase font-black tracking-[3px] text-white">System Operations</h3>
-                        <p class="text-[9px] text-dim font-bold uppercase mt-1">Mode Istirahat: <span id="shop-status-text" class="text-gold">Fetching...</span></p>
+                        <h3 class="text-xs uppercase font-black tracking-[3px] text-white">Status Operasional</h3>
+                        <p class="text-[9px] text-dim font-bold uppercase mt-1">Sistem: <span id="shop-status-text">Fetching...</span></p>
                     </div>
-                    <button id="toggle-shop-btn" class="w-full sm:w-auto px-8 py-3 bg-zinc border border-zinc-700 text-[10px] font-black uppercase tracking-widest rounded hover:border-gold transition-all">
+                    <button id="toggle-shop-btn" class="w-full sm:w-auto px-8 py-3 text-[10px] font-black uppercase tracking-widest rounded transition-all">
                         Ubah Mode Operasional
                     </button>
                 </div>
