@@ -97,6 +97,12 @@ async function startApp() {
 
         init();
         initShopStatus();
+
+        // Authenitcate Guest for Rule Compliance
+        signInAnonymously(auth).catch(err => {
+            console.warn("Guest session failed. Domain may not be authorized in Firebase Console.");
+        });
+
     } catch (err) {
         console.error("Failed to bootstrap application core:", err);
     }
