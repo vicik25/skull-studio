@@ -30,8 +30,7 @@ service cloud.firestore {
                       request.resource.data.createdAt == request.time;
       allow update: if isAdmin() || (
         isSignedIn() &&
-        resource.data.createdBy == request.auth.uid &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+        (resource.data.createdBy == request.auth.uid || resource.data.createdBy == 'anonymous') &&
         request.resource.data.status == 'cancelled' &&
         resource.data.status == 'pending'
       );

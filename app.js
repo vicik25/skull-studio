@@ -373,6 +373,17 @@ async function handleBooking(e) {
 
     const service = SERVICES.find(s => s.id === serviceId);
 
+    // Ensure session is ready
+    if (!auth.currentUser) {
+        try {
+            await signInAnonymously(auth);
+        } catch (authErr) {
+            console.error("Auth Gap:", authErr);
+            alert("Sesi gagal dimulai. Silahkan muat ulang halaman.");
+            return;
+        }
+    }
+
     const bookingData = {
         customerName: nameInput.value.trim(),
         phoneNumber: phoneInput.value.trim(),
@@ -382,7 +393,7 @@ async function handleBooking(e) {
         date: selectedDate,
         time: selectedTime,
         status: 'pending',
-        createdBy: auth.currentUser ? auth.currentUser.uid : 'anonymous',
+        createdBy: auth.currentUser.uid, // Guaranteed by catch above
         createdAt: serverTimestamp()
     };
 
@@ -438,15 +449,24 @@ function showTicket(data) {
 
     const cancelBtn = document.getElementById('cancel-booking-btn');
     cancelBtn.onclick = async () => {
-        if (confirm("Are you sure you want to cancel this booking?")) {
+        if (confirm("Apakah Anda yakin ingin membatalkan booking ini?")) {
             try {
+                console.log("Attempting to cancel booking:", data.id);
                 cancelBtn.disabled = true;
                 cancelBtn.textContent = 'CANCELING...';
+                
                 await updateDoc(doc(db, 'bookings', data.id), { status: 'cancelled' });
-                alert("Booking successfully cancelled.");
+                
+                console.log("Cancellation confirmed in database.");
+                alert("Booking berhasil dibatalkan.");
                 document.getElementById('ticket-modal').classList.add('hidden');
             } catch (err) {
+                console.error("Cancellation Failed Detail:", err);
+                alert("Gagal membatalkan. Hubungi admin via WA.");
                 handleFirestoreError(err, 'update', `bookings/${data.id}`);
+            } finally {
+                cancelBtn.disabled = false;
+                cancelBtn.textContent = 'Batalkan';
             }
         }
     };

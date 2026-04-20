@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skull Barbershop & Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#D4AF37',
+                        zinc: '#27272a',
+                        dim: '#a1a1aa'
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -89,7 +102,7 @@
     </footer>
 
     <!-- Admin Button (Hidden) -->
-    <div class="fixed bottom-4 right-4 z-50 opacity-10 hover:opacity-100 transition-opacity text-[8px] gold-text p-1 cursor-pointer" onclick="document.getElementById('login-modal').classList.remove('hidden')">
+    <div class="fixed bottom-4 right-4 z-50 opacity-10 hover:opacity-100 transition-opacity text-[8px] text-gold p-1 cursor-pointer" onclick="document.getElementById('login-modal').classList.remove('hidden')">
         SYSTEM ACCESS
     </div>
 
