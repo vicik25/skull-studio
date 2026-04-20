@@ -83,19 +83,10 @@ header.sleek-header {
     gap: 15px;
 }
 
-.logo-circle {
-    width: 40px;
-    height: 40px;
-    border: 2px solid var(--gold);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #000;
-    font-family: var(--font-serif);
-    font-weight: bold;
-    color: var(--gold);
-    font-size: 18px;
+.logo-image {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
 }
 
 .brand-name {

@@ -98,9 +98,19 @@ async function startApp() {
         init();
         initShopStatus();
 
-        // Authenitcate Guest for Rule Compliance
-        signInAnonymously(auth).catch(err => {
-            console.warn("Guest session failed. Domain may not be authorized in Firebase Console.");
+        // Handle Admin Persistence
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.email === 'skullstudio09@gmail.com') {
+                console.log("Admin session detected.");
+                document.getElementById('login-modal').classList.add('hidden');
+                document.getElementById('admin-modal').classList.remove('hidden');
+                initAdmin();
+            } else if (!user) {
+                // Authenitcate Guest if no session
+                signInAnonymously(auth).catch(err => {
+                    console.warn("Guest session failed.");
+                });
+            }
         });
 
     } catch (err) {
@@ -303,6 +313,9 @@ function listenToBookings() {
     bookingsUnsubscribe = onSnapshot(q, (snapshot) => {
         occupiedSlotsByDay = {};
         allBookings = [];
+        let footerRev = 0;
+        let footerCust = 0;
+
         const publicFeed = document.getElementById('public-feed');
         if (publicFeed) publicFeed.innerHTML = '';
 
@@ -310,9 +323,19 @@ function listenToBookings() {
             const data = doc.data();
             allBookings.push({ id: doc.id, ...data });
 
-            if (data.status !== 'cancelled' && data.status !== 'no-show') {
+            // Only PENDING bookings count towards filling up a time slot
+            if (data.status === 'pending') {
                 occupiedSlotsByDay[data.time] = (occupiedSlotsByDay[data.time] || 0) + 1;
+            }
+            
+            // Stats & Feed exclude cancelled/no-show
+            if (data.status !== 'cancelled' && data.status !== 'no-show') {
+                footerCust++;
                 
+                if (data.status === 'completed') {
+                    footerRev += parseInt(data.price.replace('K', '').split('-')[0]) * 1000;
+                }
+
                 // Public Feed Injection
                 if (publicFeed) {
                     const item = document.createElement('div');
@@ -326,6 +349,11 @@ function listenToBookings() {
                 }
             }
         });
+
+        // Update Public Footer Stats
+        if (statRevenue) statRevenue.textContent = footerRev.toLocaleString();
+        if (statCustomers) statCustomers.textContent = footerCust;
+
         updateSlots();
         updateLiveView();
     }, (err) => {
@@ -449,7 +477,8 @@ function showTicket(data) {
 
     const cancelBtn = document.getElementById('cancel-booking-btn');
     cancelBtn.onclick = async () => {
-        if (confirm("Apakah Anda yakin ingin membatalkan booking ini?")) {
+        const isConfirmed = confirm("KONFIRMASI PEMBATALAN: Apakah Anda yakin ingin membatalkan antrean ini? Pesanan yang sudah dibatalkan tidak dapat dikembalikan.");
+        if (isConfirmed) {
             try {
                 console.log("Attempting to cancel booking:", data.id);
                 cancelBtn.disabled = true;
@@ -483,19 +512,23 @@ function initAdmin() {
         let serviceCounts = {};
         
         const now = new Date();
-        const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
         const todayStr = now.toISOString().split('T')[0];
 
         const all = [];
         snapshot.forEach(d => {
             const b = { id: d.id, ...d.data() };
-            if (b.date === todayStr) {
+            
+            // Only count non-cancelled/no-show for dashboard customers
+            if (b.date === todayStr && b.status !== 'cancelled' && b.status !== 'no-show') {
                 customers++;
-                if (b.status === 'completed') {
-                    revenue += parseInt(b.price.replace('K', '').split('-')[0]) * 1000;
-                    serviceCounts[b.service] = (serviceCounts[b.service] || 0) + 1;
-                }
             }
+
+            // Always calculate revenue from completed bookings today
+            if (b.date === todayStr && b.status === 'completed') {
+                revenue += parseInt(b.price.replace('K', '').split('-')[0]) * 1000;
+                serviceCounts[b.service] = (serviceCounts[b.service] || 0) + 1;
+            }
+            
             all.push(b);
         });
 
@@ -579,7 +612,7 @@ function handleExport() {
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
     
-    let filtered = adminBookings.filter(b => b.status === 'completed');
+    let filtered = [...adminBookings];
     
     if (range === 'today') {
         filtered = filtered.filter(b => b.date === todayStr);
@@ -630,6 +663,16 @@ window.openWA = (phone, name, time) => {
 };
 
 window.updateStatus = async (id, status) => {
+    if (status === 'cancelled') {
+        const confirmCancel = confirm("PERINGATAN ADMIN: Anda akan membatalkan pesanan ini. Lanjutkan?");
+        if (!confirmCancel) {
+            // Revert dropdown if needed? Actually this just stops execution.
+            // Since it's a select change, we might want to refresh view if cancelled.
+            updateLiveView(); // Force re-render to reset select value in UI
+            return;
+        }
+    }
+    
     try {
         await updateDoc(doc(db, 'bookings', id), { status });
     } catch (err) {
