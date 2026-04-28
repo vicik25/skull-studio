@@ -1,6 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
 import { getFirestore, collection, addDoc, onSnapshot, query, where, serverTimestamp, updateDoc, doc, getDocs, orderBy, setDoc, getDocFromServer } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
-import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
 
 // Service Data
 const SERVICES = [
@@ -18,6 +18,7 @@ const SERVICES = [
 // Global State
 let db, auth;
 let selectedDate = new Date().toISOString().split('T')[0];
+let todayStr = new Date().toISOString().split('T')[0];
 let selectedTime = null;
 let occupiedSlotsByDay = {};
 let allBookings = [];
@@ -95,19 +96,25 @@ async function startApp() {
         db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
         auth = getAuth(app);
 
+        // Crucial for keeping session on refresh
+        await setPersistence(auth, browserLocalPersistence);
+
         testFirebaseConnection();
 
         init();
         initShopStatus();
+        listenToTodayStats(); // Always listen to today's stats for the floating footer
 
         onAuthStateChanged(auth, (user) => {
             if (user && user.email === 'skullstudio09@gmail.com') {
+                console.log("Admin session restored.");
                 document.getElementById('login-modal').classList.add('hidden');
                 document.getElementById('admin-modal').classList.remove('hidden');
                 initAdmin();
             } else if (!user) {
+                // Only sign in anonymously if we are truly logged out
                 signInAnonymously(auth).catch(err => {
-                    console.warn("Guest session failed.");
+                    console.warn("Guest session entry failed:", err);
                 });
             }
         });
@@ -295,6 +302,42 @@ function updateSlots() {
 
 let bookingsUnsubscribe = null;
 let adminUnsubscribe = null;
+let statsUnsubscribe = null;
+
+// New dedicated listener for Today's Stats (Revenue & Customer Count)
+function listenToTodayStats() {
+    if (statsUnsubscribe) statsUnsubscribe();
+
+    const q = query(collection(db, 'bookings'), where('date', '==', todayStr));
+    statsUnsubscribe = onSnapshot(q, (snapshot) => {
+        let revenue = 0;
+        let customers = 0;
+
+        snapshot.forEach(d => {
+            const data = d.data();
+            // Count for today's active customers (non-cancelled/no-show)
+            if (data.status !== 'cancelled' && data.status !== 'no-show') {
+                customers++;
+                // Revenue only from completed ones
+                if (data.status === 'completed') {
+                    revenue += parseInt(data.price.replace('K', '').split('-')[0]) * 1000;
+                }
+            }
+        });
+
+        // Update Floating Footer Stats
+        if (statRevenue) statRevenue.textContent = revenue.toLocaleString();
+        if (statCustomers) statCustomers.textContent = customers;
+
+        // Also update Main Dashboard if we are in admin view
+        const dashRev = document.getElementById('dash-rev');
+        const dashCust = document.getElementById('dash-cust');
+        if (dashRev) dashRev.textContent = revenue.toLocaleString();
+        if (dashCust) dashCust.textContent = customers;
+    }, (err) => {
+        console.error("Stats Listener Error:", err);
+    });
+}
 
 function listenToBookings() {
     if (bookingsUnsubscribe) bookingsUnsubscribe();
@@ -303,8 +346,6 @@ function listenToBookings() {
     bookingsUnsubscribe = onSnapshot(q, (snapshot) => {
         occupiedSlotsByDay = {};
         allBookings = [];
-        let footerRev = 0;
-        let footerCust = 0;
 
         const publicFeed = document.getElementById('public-feed');
         if (publicFeed) publicFeed.innerHTML = '';
@@ -313,30 +354,22 @@ function listenToBookings() {
             const data = doc.data();
             allBookings.push({ id: doc.id, ...data });
             
+            // Occupy slot if not cancelled/no-show
             if (data.status === 'pending' || data.status === 'completed') {
                 occupiedSlotsByDay[data.time] = (occupiedSlotsByDay[data.time] || 0) + 1;
             }
             
-            if (data.status !== 'cancelled' && data.status !== 'no-show') {
-                footerCust++;
-                if (data.status === 'completed') {
-                    footerRev += parseInt(data.price.replace('K', '').split('-')[0]) * 1000;
-                }
-                if (publicFeed) {
-                    const item = document.createElement('div');
-                    item.className = 'ticket-mini-sleek';
-                    item.innerHTML = `
-                        <div class="time-stamp">${data.time} - ${data.status.toUpperCase()}</div>
-                        <div class="cust-name text-gold uppercase opacity-50">${data.customerName.charAt(0)}***${data.customerName.slice(-1)}</div>
-                        <div class="service-type">${data.service} • Secured</div>
-                    `;
-                    publicFeed.appendChild(item);
-                }
+            if (publicFeed && data.status !== 'cancelled' && data.status !== 'no-show') {
+                const item = document.createElement('div');
+                item.className = 'ticket-mini-sleek';
+                item.innerHTML = `
+                    <div class="time-stamp">${data.time} - ${data.status.toUpperCase()}</div>
+                    <div class="cust-name text-gold uppercase opacity-50">${data.customerName.charAt(0)}***${data.customerName.slice(-1)}</div>
+                    <div class="service-type">${data.service} • Secured</div>
+                `;
+                publicFeed.appendChild(item);
             }
         });
-
-        if (statRevenue) statRevenue.textContent = footerRev.toLocaleString();
-        if (statCustomers) statCustomers.textContent = footerCust;
 
         updateSlots();
         updateLiveView();
@@ -475,21 +508,17 @@ function openFeedback(bookingId) {
 function initAdmin() {
     if (adminUnsubscribe) adminUnsubscribe();
 
+    // Admins need to see all recent bookings for management and recap
     const q = query(collection(db, 'bookings'), orderBy('date', 'desc'), orderBy('time', 'desc'));
     adminUnsubscribe = onSnapshot(q, (snapshot) => {
         adminFeed.innerHTML = '';
-        let revenue = 0;
-        let customers = 0;
         let serviceCounts = {};
         const now = new Date();
-        const todayStr = now.toISOString().split('T')[0];
         const all = [];
 
         snapshot.forEach(d => {
             const b = { id: d.id, ...d.data() };
-            if (b.date === todayStr && b.status !== 'cancelled' && b.status !== 'no-show') customers++;
             if (b.date === todayStr && b.status === 'completed') {
-                revenue += parseInt(b.price.replace('K', '').split('-')[0]) * 1000;
                 serviceCounts[b.service] = (serviceCounts[b.service] || 0) + 1;
             }
             all.push(b);
@@ -501,21 +530,56 @@ function initAdmin() {
             if (count > maxCount) { maxCount = count; topService = srv; }
         }
 
+        all.sort((a, b) => {
+            // Priority 1: Pending first
+            const aIsActive = a.status === 'pending';
+            const bIsActive = b.status === 'pending';
+            if (aIsActive && !bIsActive) return -1;
+            if (!aIsActive && bIsActive) return 1;
+            
+            // Priority 2: Within same status, sort by date/time
+            const aTimeStr = `${a.date}T${a.time}:00`;
+            const bTimeStr = `${b.date}T${b.time}:00`;
+            return aIsActive ? aTimeStr.localeCompare(bTimeStr) : bTimeStr.localeCompare(aTimeStr);
+        });
+
         all.forEach(booking => {
             const isToday = booking.date === todayStr;
-            const hourToCheck = booking.time.split(':')[0];
-            const minuteToCheck = booking.time.split(':')[1];
-            const bookingTime = new Date();
-            bookingTime.setHours(parseInt(hourToCheck), parseInt(minuteToCheck), 0);
-            const diffInMs = bookingTime - now;
+            const bookingDateTime = new Date(`${booking.date}T${booking.time}:00`);
+            const expireThreshold = new Date(bookingDateTime.getTime() + (60 * 60 * 1000));
+            const isExpired = booking.status === 'pending' && now > expireThreshold;
+            
+            const diffInMs = bookingDateTime - now;
             const isActiveNow = isToday && Math.abs(diffInMs) <= (30 * 60 * 1000) && booking.status === 'pending';
 
             const item = document.createElement('div');
-            item.className = `ticket-mini-sleek ${isActiveNow ? 'active-glow' : (isToday && booking.status === 'pending' ? 'active-booking' : '')} flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pr-4`;
+            
+            // Status-based styling classes
+            let statusClasses = 'border-zinc-800 bg-zinc-900/30';
+            if (booking.status === 'pending') {
+                statusClasses = isExpired 
+                    ? 'border-red-500/50 bg-red-900/10 shadow-[0_0_15px_rgba(239,68,68,0.1)]' 
+                    : 'border-gold/30 bg-gold/5';
+                if (isActiveNow) statusClasses += ' active-glow border-gold';
+            } else if (booking.status === 'completed') {
+                statusClasses = 'opacity-40 grayscale';
+            } else if (booking.status === 'no-show') {
+                statusClasses = 'border-red-900/50 bg-red-950/20 opacity-60';
+            }
+
+            item.className = `ticket-mini-sleek border p-4 mb-3 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${statusClasses}`;
+            
+            const statusLabel = isExpired ? '<span class="text-red-500 animate-pulse">WAKTU HABIS / PERLU KONFIRMASI</span>' : booking.status.toUpperCase();
+
             item.innerHTML = `
                 <div class="w-full">
-                    <div class="time-stamp badass-text text-[9px] text-gold">${booking.time} ${isActiveNow ? '- CURRENT SESSION' : (isToday ? '- TODAY' : '- ARCHIVED')}</div>
-                    <div class="cust-name uppercase font-black text-white text-lg tracking-tight">${booking.customerName}</div>
+                    <div class="time-stamp badass-text text-[9px] mb-1 font-black tracking-widest ${isExpired ? 'text-red-500' : 'text-gold'}">
+                        ${booking.time} • ${statusLabel} ${isToday ? '• TODAY' : ''}
+                    </div>
+                    <div class="cust-name uppercase font-black text-white text-lg tracking-tight flex items-center gap-2">
+                        ${booking.customerName}
+                        ${isActiveNow ? '<span class="w-2 h-2 bg-gold rounded-full animate-ping"></span>' : ''}
+                    </div>
                     <div class="service-type text-[10px] font-bold tracking-[1px] opacity-60 flex items-center gap-2">
                         <span>${booking.service.toUpperCase()}</span>
                         <span class="w-1 h-1 bg-zinc-600 rounded-full"></span>
@@ -523,24 +587,38 @@ function initAdmin() {
                         ${booking.feedback ? `<span class="ml-2 text-gold">★ ${booking.feedback}</span>` : ''}
                     </div>
                 </div>
-                <div class="w-full md:w-auto flex flex-col sm:flex-row items-center gap-3 pt-4 md:pt-0">
-                    <button onclick="window.openWA('${booking.phoneNumber}', '${booking.customerName}', '${booking.time}')" class="wa-admin-btn w-full sm:w-auto justify-center">WA</button>
-                    <select onchange="window.updateStatus('${booking.id}', this.value)" class="admin-action-select w-full sm:w-auto text-[10px] uppercase font-black">
-                        <option value="pending" ${booking.status === 'pending' ? 'selected' : ''}>PENDING</option>
-                        <option value="completed" ${booking.status === 'completed' ? 'selected' : ''}>SELESAI</option>
-                        <option value="no-show" ${booking.status === 'no-show' ? 'selected' : ''}>NO-SHOW</option>
-                        <option value="cancelled" ${booking.status === 'cancelled' ? 'selected' : ''}>CANCELLED</option>
-                    </select>
+                <div class="w-full md:w-auto flex flex-wrap items-center gap-2 pt-4 md:pt-0">
+                    <button onclick="window.openWA('${booking.phoneNumber}', '${booking.customerName}', '${booking.time}')" 
+                        class="px-4 py-2 bg-green-600/20 border border-green-600/40 text-green-500 text-[10px] font-black uppercase tracking-widest hover:bg-green-600 hover:text-white transition-all rounded">
+                        WA
+                    </button>
+                    
+                    ${booking.status === 'pending' ? `
+                        <button onclick="window.updateStatus('${booking.id}', 'completed')" 
+                            class="px-4 py-2 bg-gold text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all rounded shadow-lg shadow-gold/20">
+                            Selesai
+                        </button>
+                        <button onclick="window.updateStatus('${booking.id}', 'no-show')" 
+                            class="px-4 py-2 bg-red-600/20 border border-red-600/40 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all rounded">
+                            Tidak Datang
+                        </button>
+                    ` : `
+                        <div class="relative">
+                            <select onchange="window.updateStatus('${booking.id}', this.value)" class="admin-action-select text-[10px] uppercase font-black bg-transparent border border-zinc-700 p-2 rounded">
+                                <option value="pending" ${booking.status === 'pending' ? 'selected' : ''}>PENDING</option>
+                                <option value="completed" ${booking.status === 'completed' ? 'selected' : ''}>SELESAI</option>
+                                <option value="no-show" ${booking.status === 'no-show' ? 'selected' : ''}>NO-SHOW</option>
+                                <option value="cancelled" ${booking.status === 'cancelled' ? 'selected' : ''}>CANCELLED</option>
+                            </select>
+                        </div>
+                    `}
                 </div>
             `;
             adminFeed.appendChild(item);
         });
 
-        document.getElementById('dash-rev').textContent = revenue.toLocaleString();
-        document.getElementById('dash-cust').textContent = customers;
-        document.getElementById('dash-top-service').textContent = topService;
-        statRevenue.textContent = revenue.toLocaleString();
-        statCustomers.textContent = customers;
+        const dashTopSrv = document.getElementById('dash-top-service');
+        if (dashTopSrv) dashTopSrv.textContent = topService;
         adminBookings = all;
     }, (err) => {
         handleFirestoreError(err, 'list', 'bookings (admin)');
