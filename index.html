@@ -24,7 +24,7 @@
 <body class="tracking-tight">
     <header class="sleek-header">
         <div class="logo-area">
-            <img src="/logo.png" alt="Skull Barbershop Logo" class="logo-image" referrerPolicy="no-referrer">
+            <img src="logo.png" alt="Skull Barbershop Logo" class="logo-circle object-contain p-1 border-none">
             <h1 class="brand-name">Skull Barbershop & Studio</h1>
         </div>
         <nav class="nav-links">
@@ -133,6 +133,27 @@
         </div>
     </div>
 
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="fixed inset-0 z-[120] modal-overlay hidden px-6">
+        <div class="ticket-container gold-glow max-w-[320px] text-center">
+            <h4 class="text-gold text-[10px] uppercase tracking-[5px] mb-6 font-bold">Bagaimana Pelayanan Kami?</h4>
+            <p class="text-dim text-[11px] mb-8 leading-relaxed uppercase tracking-[1px]">Berikan rating untuk sesi Anda di Skull Barbershop</p>
+            
+            <div id="star-rating" class="flex justify-center gap-4 mb-10">
+                <button data-rate="1" class="star-btn text-2xl text-zinc-700 hover:text-gold transition-colors">★</button>
+                <button data-rate="2" class="star-btn text-2xl text-zinc-700 hover:text-gold transition-colors">★</button>
+                <button data-rate="3" class="star-btn text-2xl text-zinc-700 hover:text-gold transition-colors">★</button>
+                <button data-rate="4" class="star-btn text-2xl text-zinc-700 hover:text-gold transition-colors">★</button>
+                <button data-rate="5" class="star-btn text-2xl text-zinc-700 hover:text-gold transition-colors">★</button>
+            </div>
+
+            <textarea id="feedback-text" placeholder="Pesan Singkat (Opsional)" class="sleek-input w-full min-h-[80px] mb-8 p-3 text-[10px] uppercase bg-black border-zinc-800 text-white outline-none focus:border-gold"></textarea>
+
+            <button id="submit-feedback" class="w-full py-4 bg-gold text-black text-[10px] font-black uppercase tracking-[3px] hover:scale-105 transition-all rounded shadow-lg shadow-gold/20">Kirim Feedback</button>
+            <button onclick="closeModal('feedback-modal')" class="w-full mt-4 py-2 text-dim text-[9px] uppercase tracking-[2px] opacity-50 hover:opacity-100">Nanti Saja</button>
+        </div>
+    </div>
+
     <!-- Admin Overlay Fullscreen -->
     <div id="admin-modal" class="fixed inset-0 z-[100] bg-black hidden overflow-y-auto">
         <div class="p-10 max-w-5xl mx-auto">
@@ -197,7 +218,7 @@
     <!-- Login Mask -->
     <div id="login-modal" class="fixed inset-0 z-[110] bg-black hidden flex items-center justify-center p-6">
         <div class="w-full max-w-[320px] text-center">
-            <img src="/logo.png" alt="Skull Barbershop Logo" class="w-20 h-20 mx-auto mb-8 object-contain">
+            <img src="logo.png" alt="Skull Barbershop Logo" class="w-20 h-20 mx-auto mb-8 object-contain">
             <h4 class="text-[10px] uppercase tracking-[5px] text-dim mb-10 font-bold">Admin Portal Access</h4>
             <div class="space-y-4">
                 <input type="email" id="admin-email" placeholder="ADMIN EMAIL" class="sleek-input text-center">

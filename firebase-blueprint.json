@@ -11,6 +11,7 @@
         "date": { "type": "string", "format": "date", "description": "Deployment date (YYYY-MM-DD)" },
         "time": { "type": "string", "description": "Appointment time slot (HH:mm)" },
         "status": { "type": "string", "enum": ["pending", "completed", "no-show", "cancelled"], "description": "Current status of the booking" },
+        "feedback": { "type": "string", "description": "Customer feedback/rating" },
         "createdAt": { "type": "string", "format": "date-time", "description": "Time the booking was made" }
       },
       "required": ["customerName", "service", "phoneNumber", "date", "time", "status", "createdAt"]
