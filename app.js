@@ -6,9 +6,9 @@ import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassw
 const SERVICES = [
     { id: 'anak', name: 'Anak', price: '35K', duration: 30 },
     { id: 'dewasa', name: 'Dewasa', price: '50K', duration: 45 },
-    { id: 'semir', name: 'Semir Uban', price: '50K', duration: 30 },
+    { id: 'semir', name: 'Semir Uban', price: '60K', duration: 30 },
     { id: 'downperm', name: 'Downperm', price: '120K', duration: 60 },
-    { id: 'keratin', name: 'Keratin', price: '200K', duration: 90 },
+    { id: 'keratin', name: 'Keratin', price: '200K-300k', duration: 90 },
     { id: 'perming', name: 'Perming Curly/Wavy', price: '250K', duration: 120 },
     { id: 'hairlight', name: 'Hairlight', price: '160K-200K', duration: 90 },
     { id: 'coloring', name: 'Coloring Full', price: '200K-250K', duration: 90 },
