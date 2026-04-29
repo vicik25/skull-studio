@@ -446,7 +446,7 @@ function showTicket(data) {
     document.getElementById('t-service').textContent = data.service;
 
     const waMsg = encodeURIComponent(`Halo Skull Barbershop, saya ingin konfirmasi booking:\n\nID: ${data.id}\nNama: ${data.customerName}\nLayanan: ${data.service}\nWaktu: ${data.date} jam ${data.time}\n\nTerima kasih!`);
-    const openWA = () => window.open(`https://wa.me/6285723883091?text=${waMsg}`, '_blank');
+    const openWA = () => window.open(`https://wa.me/6282134504657?text=${waMsg}`, '_blank');
     document.getElementById('wa-confirm-global').onclick = openWA;
     document.getElementById('wa-confirm-modal').onclick = openWA;
 
@@ -657,9 +657,19 @@ function handleExport() {
     XLSX.writeFile(workbook, `Skull_Recap_${range}_${todayStr}.xlsx`);
 }
 
+function formatPhone(num) {
+    if (!num) return '';
+    let cleaned = num.replace(/\D/g, ''); // Hapus semua karakter non-digit
+    if (cleaned.startsWith('0')) {
+        cleaned = '62' + cleaned.slice(1); // Ubah 08xxx menjadi 628xxx
+    }
+    return cleaned;
+}
+
 window.openWA = (phone, name, time) => {
-    const msg = encodeURIComponent(`Halo ${name}, kami dari Skull Barbershop mengonfirmasi antrean Anda jam ${time}.`);
-    window.open(`https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${msg}`, '_blank');
+    const formattedPhone = formatPhone(phone);
+    const msg = encodeURIComponent(`Halo Kak ${name}, ini dari Skull Barber Studio. Kami ingin mengonfirmasi antrean Anda untuk jam ${time}. Apakah ada yang bisa kami bantu?`);
+    window.open(`https://wa.me/${formattedPhone}?text=${msg}`, '_blank');
 };
 
 window.updateStatus = async (id, status) => {
