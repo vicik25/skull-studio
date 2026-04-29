@@ -68,9 +68,18 @@
                         <input type="text" id="cust-name" required placeholder="NAME" class="sleek-input">
                         <input type="tel" id="cust-phone" required placeholder="WHATSAPP" class="sleek-input">
                     </div>
-                    <select id="selected-service" required class="sleek-input">
-                        <option value="" disabled selected>CHOOSE SERVICE</option>
-                    </select>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <select id="selected-service" required class="sleek-input">
+                            <option value="" disabled selected>CHOOSE SERVICE</option>
+                        </select>
+                        <select id="selected-barber" required class="sleek-input">
+                            <option value="Siapa Saja (Random)">SIAPA SAJA (RANDOM)</option>
+                            <option value="Jajang">JAJANG</option>
+                            <option value="Irsad">IRSAD</option>
+                            <option value="Afaz">AFAZ</option>
+                            <option value="Ibo">IBO</option>
+                        </select>
+                    </div>
                     <button type="submit" id="submit-booking" class="w-full h-12 bg-[#D4AF37] text-black font-black uppercase text-xs tracking-widest rounded hover:opacity-90 transition-opacity">
                         Establish Appointment
                     </button>
@@ -124,6 +133,7 @@
                 <div class="flex justify-between font-mono"><span>JAM BOOKING</span> <span id="t-time" class="text-gold"></span></div>
                 <div class="flex justify-between"><span>PELANGGAN</span> <span id="t-name" class="text-white"></span></div>
                 <div class="flex justify-between"><span>LAYANAN</span> <span id="t-service" class="text-white"></span></div>
+                <div class="flex justify-between font-mono"><span>BARBERMEN</span> <span id="t-barber" class="text-gold"></span></div>
             </div>
             <div class="mt-8">
                 <button id="wa-confirm-modal" class="w-full bg-gold text-black font-black py-4 uppercase tracking-widest text-[11px] rounded transition-transform active:scale-95 shadow-lg shadow-gold/20">Konfirmasi via WhatsApp</button>

@@ -281,12 +281,12 @@ function updateSlots() {
             const timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
             const slot = document.createElement('div');
             const count = occupiedSlotsByDay[timeStr] || 0;
-            const isFull = count >= 2;
+            const isFull = count >= 4;
 
             slot.className = `slot-sleek ${isFull ? 'full' : 'available'} ${selectedTime === timeStr ? 'selected' : ''}`;
             slot.innerHTML = `
                 <span class="time">${timeStr}</span>
-                <span class="status-label-sleek">${isFull ? 'Full' : (count + '/2 Slots')}</span>
+                <span class="status-label-sleek">${isFull ? 'Full' : (count + '/4 Slots')}</span>
             `;
             
             if (!isFull) {
@@ -383,8 +383,8 @@ function updateLiveView() {
     Object.keys(occupiedSlotsByDay).sort().forEach(time => {
         const count = occupiedSlotsByDay[time];
         const dot = document.createElement('div');
-        dot.className = `px-3 py-1 text-[9px] font-bold uppercase border ${count >= 2 ? 'bg-gold text-black border-gold' : 'border-zinc text-dim'}`;
-        dot.textContent = `${time} ${count >= 2 ? 'FULL' : 'BUSY'}`;
+        dot.className = `px-3 py-1 text-[9px] font-bold uppercase border ${count >= 4 ? 'bg-gold text-black border-gold' : 'border-zinc text-dim'}`;
+        dot.textContent = `${time} ${count >= 4 ? 'FULL' : 'BUSY'}`;
         occupiedView.appendChild(dot);
     });
     if (Object.keys(occupiedSlotsByDay).length === 0) {
@@ -397,6 +397,8 @@ async function handleBooking(e) {
     const nameInput = document.getElementById('cust-name');
     const phoneInput = document.getElementById('cust-phone');
     const serviceId = document.getElementById('selected-service').value;
+
+    const barberSelect = document.getElementById('selected-barber');
 
     if (!nameInput.value.trim()) { alert("Nama Pelanggan Wajib Diisi"); nameInput.focus(); return; }
     if (!phoneInput.value.trim() || phoneInput.value.length < 8) { alert("Nomor WhatsApp Tidak Valid"); phoneInput.focus(); return; }
@@ -413,6 +415,7 @@ async function handleBooking(e) {
         phoneNumber: phoneInput.value.trim(),
         service: service.name,
         serviceId: serviceId,
+        barberName: barberSelect.value, // Added barber selection
         price: service.price,
         date: selectedDate,
         time: selectedTime,
@@ -444,6 +447,14 @@ function showTicket(data) {
     document.getElementById('t-time').textContent = data.time;
     document.getElementById('t-name').textContent = data.customerName;
     document.getElementById('t-service').textContent = data.service;
+    
+    // Display barber name if exists
+    const tBarber = document.getElementById('t-barber');
+    if (tBarber) tBarber.textContent = data.barberName || 'Siapa Saja';
+    else {
+        // If element doesn't exist in HTML yet, we could add it dynamically or just skip
+        // But requested to show it, so let's check if we should add it to HTML too
+    }
 
     const waMsg = encodeURIComponent(`Halo Skull Barbershop, saya ingin konfirmasi booking:\n\nID: ${data.id}\nNama: ${data.customerName}\nLayanan: ${data.service}\nWaktu: ${data.date} jam ${data.time}\n\nTerima kasih!`);
     const openWA = () => window.open(`https://wa.me/6282134504657?text=${waMsg}`, '_blank');
@@ -580,8 +591,10 @@ function initAdmin() {
                         ${booking.customerName}
                         ${isActiveNow ? '<span class="w-2 h-2 bg-gold rounded-full animate-ping"></span>' : ''}
                     </div>
-                    <div class="service-type text-[10px] font-bold tracking-[1px] opacity-60 flex items-center gap-2">
+                    <div class="service-type text-[10px] font-bold tracking-[1px] opacity-60 flex flex-wrap items-center gap-2">
                         <span>${booking.service.toUpperCase()}</span>
+                        <span class="w-1 h-1 bg-zinc-600 rounded-full"></span>
+                        <span class="text-gold">BARBER: ${booking.barberName ? booking.barberName.toUpperCase() : 'SIAPA SAJA'}</span>
                         <span class="w-1 h-1 bg-zinc-600 rounded-full"></span>
                         <span class="font-mono text-gold">${booking.price}</span>
                         ${booking.feedback ? `<span class="ml-2 text-gold">★ ${booking.feedback}</span>` : ''}
