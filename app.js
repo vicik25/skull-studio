@@ -400,8 +400,6 @@ async function handleBooking(e) {
     const phoneInput = document.getElementById('cust-phone');
     const serviceId = document.getElementById('selected-service').value;
 
-    const barberSelect = document.getElementById('selected-barber');
-
     if (!nameInput.value.trim()) { alert("Nama Pelanggan Wajib Diisi"); nameInput.focus(); return; }
     if (!phoneInput.value.trim() || phoneInput.value.length < 8) { alert("Nomor WhatsApp Tidak Valid"); phoneInput.focus(); return; }
     if (!selectedTime) { alert("Silahkan Pilih Jam Booking Terlebih Dahulu"); return; }
@@ -417,7 +415,6 @@ async function handleBooking(e) {
         phoneNumber: phoneInput.value.trim(),
         service: service.name,
         serviceId: serviceId,
-        barberName: barberSelect.value, // Added barber selection
         price: service.price,
         date: selectedDate,
         time: selectedTime,
@@ -449,16 +446,8 @@ function showTicket(data) {
     document.getElementById('t-time').textContent = data.time;
     document.getElementById('t-name').textContent = data.customerName;
     document.getElementById('t-service').textContent = data.service;
-    
-    // Display barber name if exists
-    const tBarber = document.getElementById('t-barber');
-    if (tBarber) tBarber.textContent = data.barberName || 'Siapa Saja';
-    else {
-        // If element doesn't exist in HTML yet, we could add it dynamically or just skip
-        // But requested to show it, so let's check if we should add it to HTML too
-    }
 
-    const waMsg = encodeURIComponent(`Halo Skull Barbershop, saya ingin konfirmasi booking:\n\nID: ${data.id}\nNama: ${data.customerName}\nLayanan: ${data.service}\nBarber: ${data.barberName || 'Siapa Saja'}\nWaktu: ${data.date} jam ${data.time}\n\nTerima kasih!`);
+    const waMsg = encodeURIComponent(`Halo Skull Barbershop, saya ingin konfirmasi booking:\n\nID: ${data.id}\nNama: ${data.customerName}\nLayanan: ${data.service}\nWaktu: ${data.date} jam ${data.time}\n\nTerima kasih!`);
     const openWA = () => window.open(`https://wa.me/6282134504657?text=${waMsg}`, '_blank');
     document.getElementById('wa-confirm-global').onclick = openWA;
     document.getElementById('wa-confirm-modal').onclick = openWA;
@@ -595,8 +584,6 @@ function initAdmin() {
                     </div>
                     <div class="service-type text-[10px] font-bold tracking-[1px] opacity-60 flex flex-wrap items-center gap-2">
                         <span>${booking.service.toUpperCase()}</span>
-                        <span class="w-1 h-1 bg-zinc-600 rounded-full"></span>
-                        <span class="text-gold">BARBER: ${booking.barberName ? booking.barberName.toUpperCase() : 'SIAPA SAJA'}</span>
                         <span class="w-1 h-1 bg-zinc-600 rounded-full"></span>
                         <span class="font-mono text-gold">${booking.price}</span>
                         ${booking.feedback ? `<span class="ml-2 text-gold">★ ${booking.feedback}</span>` : ''}
